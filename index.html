@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>STUMBLE GUYS beta</title>
+<style>
+body{margin:0;overflow:hidden;background:#000;}
+#ui{position:fixed;top:10px;left:10px;color:white;font-family:Arial;z-index:10}
+#jump{position:fixed;bottom:40px;right:40px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold}
+#joystick{position:fixed;bottom:40px;left:40px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.15)}
+#stick{width:40px;height:40px;border-radius:50%;background:white;position:absolute;top:30px;left:30px}
+</style>
+</head>
+<body>
+
+<div id="ui">🏁 Vá até a chegada</div>
+<div id="joystick"><div id="stick"></div></div>
+<div id="jump">PULAR</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script>
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x87ceeb);
+
+const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.1,500);
+camera.position.set(0,5,8);
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.DirectionalLight(0xffffff,1).position.set(5,10,5));
+scene.add(new THREE.AmbientLight(0xffffff,.4));
+
+const ground=new THREE.Mesh(new THREE.BoxGeometry(12,1,200),new THREE.MeshStandardMaterial({color:0x3aa657}));
+ground.position.set(0,-.5,-80);
+scene.add(ground);
+
+const skins=[0xffcc00,0xff00ff,0x00ffff,0x00ff00];
+const player=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({color:skins[Math.floor(Math.random()*skins.length)]}));
+player.position.y=.5;
+scene.add(player);
+
+const finish=new THREE.Mesh(new THREE.BoxGeometry(12,3,1),new THREE.MeshStandardMaterial({color:0xffffff}));
+finish.position.set(0,1,-160);
+scene.add(finish);
+
+let velY=0,onGround=true,moveX=0,gameOver=false;
+const gravity=.03,speed=.35;
+
+const jumpSound=new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+const winSound=new Audio("https://actions.google.com/sounds/v1/cartoon/concussive_drum_hit.ogg");
+
+document.getElementById("jump").ontouchstart=()=>{
+ if(onGround&&!gameOver){velY=.6;onGround=false;jumpSound.play();}
+ else if(gameOver)location.reload();
+};
+
+const joy=document.getElementById("joystick"),stick=document.getElementById("stick");
+let drag=false;
+joy.ontouchstart=()=>drag=true;
+joy.ontouchend=()=>{drag=false;moveX=0;stick.style.left="30px"};
+joy.ontouchmove=e=>{
+ if(!drag)return;
+ const r=joy.getBoundingClientRect();
+ const x=e.touches[0].clientX-r.left-50;
+ moveX=Math.max(-.2,Math.min(.2,x/250));
+ stick.style.left=(30+x*.4)+"px";
+};
+
+function loop(){
+ requestAnimationFrame(loop);
+ if(!gameOver){
+  velY-=gravity;
+  player.position.y+=velY;
+  player.position.x+=moveX;
+  if(player.position.y<=.5){player.position.y=.5;velY=0;onGround=true}
+  if(player.position.z<=finish.position.z+1){
+   gameOver=true;
+   document.getElementById("ui").innerHTML="🏆 VOCÊ VENCEU!";
+   winSound.play();
+  }
+ }
+ player.position.z-=speed;
+ camera.position.z=player.position.z+8;
+ renderer.render(scene,camera);
+}
+loop();
+</script>
+</body>
+</html>
