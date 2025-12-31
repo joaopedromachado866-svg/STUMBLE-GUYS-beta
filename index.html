@@ -26,7 +26,57 @@ body{margin:0;overflow:hidden;background:#000;}
 #stick{width:40px;height:40px;border-radius:50%;background:white;position:absolute;top:30px;left:30px}
 </style>
 </head>
-<body>
+<body>const platform = new THREE.Mesh(
+  new THREE.CylinderGeometry(3,3,0.4,32),
+  new THREE.MeshStandardMaterial({color:0xff5555})
+);
+platform.position.set(0,0,0);
+scene.add(platform);
+platform.rotation.y += 0.025;
+const dx = player.position.x - platform.position.x;
+const dz = player.position.z - platform.position.z;
+const dist = Math.sqrt(dx*dx + dz*dz);
+
+if(dist < 3){
+  player.position.x += Math.sin(platform.rotation.y)*0.03;
+  player.position.z += Math.cos(platform.rotation.y)*0.03;
+}
+const hammer = new THREE.Mesh(
+  new THREE.BoxGeometry(0.4,0.4,4),
+  new THREE.MeshStandardMaterial({color:0x4444ff})
+);
+hammer.position.set(0,1,5);
+scene.add(hammer);
+hammer.rotation.y += 0.04;
+if(player.position.distanceTo(hammer.position) < 2){
+  player.position.x += Math.sin(hammer.rotation.y)*0.2;
+}
+const fakeFloor = new THREE.Mesh(
+  new THREE.BoxGeometry(3,0.2,3),
+  new THREE.MeshStandardMaterial({color:0xaaaaaa})
+);
+fakeFloor.position.set(0,0,10);
+scene.add(fakeFloor);
+
+let floorTimer = 0;
+if(player.position.distanceTo(fakeFloor.position) < 1.5){
+  floorTimer++;
+  if(floorTimer > 60){
+    fakeFloor.position.y -= 0.1;
+  }
+}
+Início
+↓
+Plataforma giratória
+↓
+Martelo
+↓
+Piso falso
+↓
+Chegada 
+    }
+  ]
+}
 
 <div id="ui">🏁 Vá até a chegada</div>
 <div id="joystick"><div id="stick"></div></div>
